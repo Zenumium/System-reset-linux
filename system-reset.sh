@@ -102,7 +102,7 @@ if command -v apt-get &> /dev/null; then
     apt-get -y purge libreoffice* thunderbird* gimp* transmission* simple-scan* rhythmbox* \
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
                      cheese* shotwell* remmina* totem* brasero* sound-juicer* \
-                     deja-dup* timeshift* synaptic* 
+                     deja-dup* timeshift* synaptic* git* vlc* curl* wget* \
     
     # Remove user-installed packages (those not in the original installation)
     log_action "Removing user-installed packages..."

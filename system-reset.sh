@@ -99,6 +99,10 @@ if command -v apt-get &> /dev/null; then
         "init" "systemd" # Essential system components
         "linux-image-*" "linux-modules-*" "linux-firmware" # Kernel related
         "base-files" "base-passwd" "bash" "coreutils" # Fundamental utilities
+        "snap-store" #
+        "firefox"
+        "snapd"
+        
         # Add any other packages that MUST be preserved here, e.g., "your-critical-app"
     )
     essential_pattern=$(IFS='|'; echo "${essential_packages[*]}")
@@ -114,7 +118,8 @@ if command -v apt-get &> /dev/null; then
     apt-get -y purge libreoffice* thunderbird* gimp* transmission* simple-scan* rhythmbox* \
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
                      cheese* shotwell* remmina* totem* brasero* sound-juicer* \
-                     deja-dup* timeshift* synaptic* snap-store* firefox*
+                     deja-dup* timeshift* synaptic* firefox*
+    # Note: Removed 'snap-store*' from the purge list above
 
     # Remove user-installed packages (those not in the original installation), EXCLUDING essential ones
     log_action "Removing user-installed packages (excluding essential ones)..."
@@ -155,6 +160,7 @@ elif command -v dnf &> /dev/null; then
     essential_groups=("core" "minimal")
     essential_packages=(
         # Add individual essential packages here if needed
+        "snapd" # Keep Snap-related packages
     )
     essential_patterns=$(echo "${essential_groups[@]}" | sed 's/ /\|/g')
 
@@ -338,7 +344,7 @@ fi
 
 # Clean up snap applications if snap is installed (excluding core and essential snaps)
 if command -v snap &> /dev/null; then
-    log_action "Backing up and removing non-essential Snap applications (excluding core)..."
+    log_action "Backing up and removing non-essential Snap applications (excluding core and snap-store)..."
     snap list > "$backup_dir/snap_applications.txt"
 
     # Define essential snap packages to keep
@@ -348,6 +354,9 @@ if command -v snap &> /dev/null; then
         "bare"
         "base"
         "gtk-common-themes"
+        "snap-store"  # Added snap-store to keep it preserved
+        "gnome-3-38-2004"  # Dependency for snap-store
+        "gnome-42-2204"    # Newer dependency for snap-store
         # Add any other essential snaps here
     )
     essential_snap_pattern=$(IFS='|'; echo "^(${essential_snaps[*]})$")
@@ -386,6 +395,7 @@ echo "System reset process complete!"
 echo "============================="
 echo ""
 echo "A backup of important system files was created at: $backup_dir"
+echo "Snap Store was preserved as requested."
 echo "Please reboot your system now for all changes to take effect."
 echo ""
 

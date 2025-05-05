@@ -104,9 +104,9 @@ if command -v apt-get &> /dev/null; then
         "init" "systemd" # Essential system components
         "linux-image-*" "linux-modules-*" "linux-firmware" # Kernel related
         "base-files" "base-passwd" "bash" "coreutils" # Fundamental utilities
-        "snap-store" # Keep Snap Store as requested
-        "firefox" "firefox-*" # Keep Firefox as requested
-        # Add any other packages that MUST be preserved here, e.g., "your-critical-app"
+        "snap-store" # Keep Snap Store
+        "firefox" "firefox-*" # Keep Firefox 
+        # Add any other packages that MUST be preserved here, e.g., "My App"
     )
     essential_pattern=$(IFS='|'; echo "${essential_packages[*]}")
     log_action "Essential packages to preserve: $essential_pattern"
@@ -500,7 +500,7 @@ if command -v snap &> /dev/null; then
         "base"
         "gtk-common-themes"
         "snap-store"  # Added snap-store to keep it preserved
-        "firefox"     # Keep Firefox snap as requested
+        "firefox"     # Keep Firefox snap
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
         # Add any other essential snaps here

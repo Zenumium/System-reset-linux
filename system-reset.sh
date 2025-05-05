@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Linux System Reset Script
-# This script resets a Linux system to a near-default state without reinstalling the OS
+# Ubuntu/Linux System Reset Script
+# This script resets a Linux system to a cleaner state while preserving the desktop environment
+# It removes non-essential applications, clears user data, and resets configurations
 # IMPORTANT: Run this script as root (sudo)
 # WARNING: This will delete user data and reset configurations!
 
@@ -58,18 +59,48 @@ if [ -f /var/log/installer/initial-status.gz ]; then
     log_action "Backed up initial package status"
 fi
 
-# 1. Remove all non-default packages (distro-specific approaches)
-log_action "Removing non-default packages..."
+# 1. Remove non-default packages while preserving desktop environment
+log_action "Removing non-default packages while preserving desktop environment..."
 
 # For Debian/Ubuntu based systems
 if command -v apt-get &> /dev/null; then
-    # Keep only essential packages
+    # Backup current package list
     apt-get update
     apt-mark showmanual > "$backup_dir/manually_installed_packages.txt"
+    dpkg --get-selections > "$backup_dir/package_selections.txt"
     
-    # Option 1: Keep only essential packages
-    apt-get -y install aptitude
-    aptitude -y markauto '~i!~M!~E!~prequired!~pimportant'
+    # Detect desktop environment to preserve
+    desktop_env=""
+    if dpkg -l | grep -q ubuntu-desktop; then
+        desktop_env="ubuntu-desktop"
+    elif dpkg -l | grep -q kubuntu-desktop; then
+        desktop_env="kubuntu-desktop"
+    elif dpkg -l | grep -q xubuntu-desktop; then
+        desktop_env="xubuntu-desktop"
+    elif dpkg -l | grep -q lubuntu-desktop; then
+        desktop_env="lubuntu-desktop"
+    elif dpkg -l | grep -q ubuntu-gnome-desktop; then
+        desktop_env="ubuntu-gnome-desktop"
+    fi
+    
+    log_action "Detected desktop environment: ${desktop_env:-none}"
+    
+    if [ -n "$desktop_env" ]; then
+        # Make sure the desktop environment is marked as manually installed
+        apt-mark manual $desktop_env
+        # Also preserve critical X11 and display manager packages
+        apt-mark manual xorg lightdm gdm3 gnome-shell firefox
+    fi
+    
+    # Remove only certain categories of packages
+    # This approach is less aggressive than the previous one
+    log_action "Removing games, extra media players, and non-essential applications..."
+    apt-get -y purge libreoffice* thunderbird* gimp* transmission* simple-scan* rhythmbox* \
+                     gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
+                     cheese* shotwell* remmina* totem* brasero* sound-juicer* \
+                     deja-dup* timeshift* synaptic* 
+    
+    # Remove orphaned packages
     apt-get -y autoremove --purge
     
     # Clean package cache

@@ -99,12 +99,37 @@ fi
 find /var/log -type f -exec truncate -s 0 {} \;
 rm -rf /tmp/* /var/tmp/*
 
+# Modified Snap handling to be more robust
 if command -v snap &> /dev/null; then
-    snap list > "$backup_dir/snap_list.txt"
-    for snap in $(snap list | awk 'NR>1 {print $1}' | grep -v -E '^(core|core18|core20|core22|snapd|bare|base|gtk-common-themes|snap-store)$'); do
-        echo "Removing snap: $snap"
-        snap remove --purge $snap || true
-    done
+    echo "Listing installed snap packages..."
+    snap_list_output=$(snap list 2>&1) # Capture output and errors
+
+    # Check if snap list command was successful
+    if echo "$snap_list_output" | grep -q "Name"; then
+        echo "Saving list of installed snaps to $backup_dir/snap_list.txt"
+        echo "$snap_list_output" > "$backup_dir/snap_list.txt"
+
+        echo "Removing non-essential snap packages..."
+        # Use awk to extract snap names, skipping the header
+        snap_packages=$(echo "$snap_list_output" | awk 'NR>1 {print $1}')
+
+        if [ -n "$snap_packages" ]; then
+            for snap in $snap_packages; do
+                # Exclude essential snaps and the snap-store
+                if ! [[ "$snap" =~ ^(core|core18|core20|core22|snapd|bare|base|gtk-common-themes|snap-store)$ ]]; then
+                    echo "Removing snap: $snap"
+                    snap remove --purge "$snap" || true
+                fi
+            done
+        else
+            echo "No removable snap packages found."
+        fi
+    else
+        echo "Warning: Failed to list snap packages. Skipping snap removal."
+        echo "Details: $snap_list_output"
+    fi
+else
+    echo "Warning: snap command not found. Skipping snap removal."
 fi
 
 echo "System reset completed. Backup saved at $backup_dir"

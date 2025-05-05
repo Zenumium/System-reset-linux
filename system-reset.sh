@@ -13,15 +13,11 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Display warning and confirmation
-echo "This script was created By Projeckt Aqua to help users reset their Linux systems."
-echo ""
-echo "==================================================="
 echo "WARNING: This script will reset your system to a near-default state."
 echo "All user data, installed applications, and configurations will be removed."
 echo "The OS itself will remain installed."
 echo ""
 echo "This operation CANNOT be undone!"
-echo "==================================================="
 read -p "Are you absolutely sure you want to continue? (yes/no): " confirmation
 
 if [ "$confirmation" != "yes" ]; then
@@ -92,8 +88,10 @@ if command -v apt-get &> /dev/null; then
     if [ -n "$desktop_env" ]; then
         # Make sure the desktop environment is marked as manually installed
         apt-mark manual $desktop_env
-        # Also preserve critical X11 and display manager packages
+        # Also preserve critical X11, display manager, and essential applications
         apt-mark manual xorg lightdm gdm3 gnome-shell firefox ubuntu-session gnome-session
+        # Preserve App Center (different names depending on distribution)
+        apt-mark manual gnome-software ubuntu-software software-center firefox
     fi
     
     # Remove only certain categories of packages
@@ -102,7 +100,7 @@ if command -v apt-get &> /dev/null; then
     apt-get -y purge libreoffice* thunderbird* gimp* transmission* simple-scan* rhythmbox* \
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
                      cheese* shotwell* remmina* totem* brasero* sound-juicer* \
-                     deja-dup* timeshift* synaptic* git* vlc* curl* wget* \
+                     deja-dup* timeshift* synaptic* 
     
     # Remove user-installed packages (those not in the original installation)
     log_action "Removing user-installed packages..."
@@ -116,7 +114,7 @@ if command -v apt-get &> /dev/null; then
         # Find packages that were installed after the initial system setup
         # but exclude critical packages
         grep -v -f "$backup_dir/original_packages.txt" "$backup_dir/current_packages.txt" | \
-        grep -v -E "($desktop_env|xorg|gdm3|lightdm|gnome-shell|ubuntu-session|gnome-session|network-manager|ubuntu-minimal|ubuntu-standard)" > "$backup_dir/to_remove.txt"
+        grep -v -E "($desktop_env|xorg|gdm3|lightdm|gnome-shell|ubuntu-session|gnome-session|network-manager|ubuntu-minimal|ubuntu-standard|firefox|gnome-software|ubuntu-software|software-center)" > "$backup_dir/to_remove.txt"
         
         # Remove these packages if the list is not empty
         if [ -s "$backup_dir/to_remove.txt" ]; then

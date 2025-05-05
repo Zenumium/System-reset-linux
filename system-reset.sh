@@ -11,13 +11,16 @@ if [ "$(id -u)" -ne 0 ]; then
     echo "This script must be run as root (use sudo)."
     exit 1
 fi
-
 # Display warning and confirmation
+echo "This script was created By Projeckt Aqua to help users reset their Linux systems."
+echo ""
+echo "==================================================="
 echo "WARNING: This script will reset your system to a near-default state."
-echo "All user data, most installed applications, and configurations will be removed."
-echo "The OS itself will remain installed, with essential components preserved."
+echo "All user data, installed applications, and configurations will be removed."
+echo "The OS itself will remain installed."
 echo ""
 echo "This operation CANNOT be undone!"
+echo "==================================================="
 read -p "Are you absolutely sure you want to continue? (yes/no): " confirmation
 
 if [ "$confirmation" != "yes" ]; then
@@ -99,10 +102,8 @@ if command -v apt-get &> /dev/null; then
         "init" "systemd" # Essential system components
         "linux-image-*" "linux-modules-*" "linux-firmware" # Kernel related
         "base-files" "base-passwd" "bash" "coreutils" # Fundamental utilities
-        "snap-store" #
-        "firefox"
-        "snapd"
-        
+        "snap-store" # Keep Snap Store 
+        "firefox" "firefox-*" # Keep Firefox
         # Add any other packages that MUST be preserved here, e.g., "your-critical-app"
     )
     essential_pattern=$(IFS='|'; echo "${essential_packages[*]}")
@@ -355,6 +356,7 @@ if command -v snap &> /dev/null; then
         "base"
         "gtk-common-themes"
         "snap-store"  # Added snap-store to keep it preserved
+        "firefox"     # Keep Firefox snap
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
         # Add any other essential snaps here

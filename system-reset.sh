@@ -11,6 +11,7 @@ if [ "$(id -u)" -ne 0 ]; then
     echo "This script must be run as root (use sudo)."
     exit 1
 fi
+
 # Display warning and confirmation
 echo "This script was created By Projeckt Aqua to help users reset their Linux systems."
 echo ""
@@ -22,6 +23,7 @@ echo ""
 echo "This operation CANNOT be undone!"
 echo "==================================================="
 read -p "Are you absolutely sure you want to continue? (yes/no): " confirmation
+
 
 if [ "$confirmation" != "yes" ]; then
     echo "Operation cancelled."
@@ -102,8 +104,8 @@ if command -v apt-get &> /dev/null; then
         "init" "systemd" # Essential system components
         "linux-image-*" "linux-modules-*" "linux-firmware" # Kernel related
         "base-files" "base-passwd" "bash" "coreutils" # Fundamental utilities
-        "snap-store" # Keep Snap Store 
-        "firefox" "firefox-*" # Keep Firefox
+        "snap-store" # Keep Snap Store as requested
+        "firefox" "firefox-*" # Keep Firefox as requested
         # Add any other packages that MUST be preserved here, e.g., "your-critical-app"
     )
     essential_pattern=$(IFS='|'; echo "${essential_packages[*]}")
@@ -119,8 +121,8 @@ if command -v apt-get &> /dev/null; then
     apt-get -y purge libreoffice* thunderbird* gimp* transmission* simple-scan* rhythmbox* \
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
                      cheese* shotwell* remmina* totem* brasero* sound-juicer* \
-                     deja-dup* timeshift* synaptic* firefox*
-    # Note: Removed 'snap-store*' from the purge list above
+                     deja-dup* timeshift* synaptic*
+    # Note: Removed 'snap-store*' and 'firefox*' from the purge list above
 
     # Remove user-installed packages (those not in the original installation), EXCLUDING essential ones
     log_action "Removing user-installed packages (excluding essential ones)..."
@@ -298,8 +300,135 @@ log_action "Clearing system caches..."
 sync
 echo 3 > /proc/sys/vm/drop_caches
 
-# 5. Clean up manually installed software
-log_action "Cleaning up manually installed software..."
+# 5. Clean up manually installed software and development tools
+log_action "Cleaning up manually installed software and development tools..."
+
+# Remove common development tools (unless they're in the essential packages list)
+dev_packages_to_remove=(
+    "git" "git-*"
+    "nodejs" "node-*" "npm"
+    "python*-dev" "python*-pip" "python*-venv" "python*-setuptools"
+    "ruby" "ruby-dev" "rubygems" "gem"
+    "php*" "php*-cli" "php*-common" "composer"
+    "gcc" "g++" "make" "build-essential" "cmake" "autoconf" "automake"
+    "golang" "golang-go"
+    "rust*" "cargo"
+    "openjdk*" "maven" "gradle"
+    "docker*" "docker.io" "podman" "containerd"
+    "yarn" "typescript" "babel"
+    "mongodb*" "mysql*" "postgresql*" "redis*"
+    "apache2*" "nginx*"
+)
+
+if command -v apt-get &> /dev/null; then
+    log_action "Removing development tools via apt-get..."
+    
+    # Create a pattern that excludes essential packages
+    exclude_pattern=""
+    for pkg in "${essential_packages[@]}"; do
+        exclude_pattern="$exclude_pattern|$pkg"
+    done
+    exclude_pattern="${exclude_pattern:1}" # Remove the leading |
+    
+    # Filter packages to remove against the essential package list
+    filtered_packages=()
+    for pkg in "${dev_packages_to_remove[@]}"; do
+        if ! [[ "$pkg" =~ $exclude_pattern ]]; then
+            filtered_packages+=("$pkg")
+        fi
+    done
+    
+    # Remove development packages that are not in the essential list
+    if [ ${#filtered_packages[@]} -gt 0 ]; then
+        log_action "Removing ${#filtered_packages[@]} development packages..."
+        apt-get -y purge "${filtered_packages[@]}" || true
+        apt-get -y autoremove --purge
+    fi
+elif command -v dnf &> /dev/null; then
+    log_action "Removing development tools via dnf..."
+    dnf -y remove git nodejs npm python*-devel python*-pip ruby rubygems golang rust cargo || true
+    dnf -y autoremove
+elif command -v pacman &> /dev/null; then
+    log_action "Removing development tools via pacman..."
+    pacman -Rns --noconfirm git nodejs npm python python-pip ruby go rust || true
+fi
+
+# Remove version managers and language-specific tools
+log_action "Removing version managers and language-specific tools..."
+version_managers=(
+    "/home/*/.nvm"
+    "/home/*/.n"
+    "/home/*/.pyenv"
+    "/home/*/.rbenv"
+    "/home/*/.sdkman"
+    "/home/*/.rustup"
+    "/home/*/.cargo"
+    "/home/*/.volta"
+    "/home/*/.gvm"
+    "/home/*/.jenv"
+    "/home/*/.goenv"
+    "/home/*/.nodenv"
+)
+
+for vm_path in "${version_managers[@]}"; do
+    if ls $vm_path &>/dev/null; then
+        log_action "Removing version manager: $vm_path"
+        rm -rf $vm_path
+    fi
+done
+
+# Remove language-specific package managers in home directories
+log_action "Removing language-specific package managers in home directories..."
+pkg_managers=(
+    "/home/*/.npm"
+    "/home/*/.yarn"
+    "/home/*/.pip"
+    "/home/*/.gem"
+    "/home/*/.composer"
+    "/home/*/.bundle"
+    "/home/*/.nuget"
+    "/home/*/.gradle"
+    "/home/*/.m2"
+    "/home/*/.sbt"
+    "/home/*/.ivy2"
+)
+
+for pkg_path in "${pkg_managers[@]}"; do
+    if ls $pkg_path &>/dev/null; then
+        log_action "Removing package manager: $pkg_path"
+        rm -rf $pkg_path
+    fi
+done
+
+# Clean up global npm packages
+if command -v npm &> /dev/null; then
+    log_action "Backing up and removing global npm packages..."
+    npm ls -g --depth=0 > "$backup_dir/npm_global_packages.txt"
+    npm_prefix=$(npm config get prefix)
+    if [ -d "$npm_prefix/lib/node_modules" ]; then
+        log_action "Removing global npm packages in $npm_prefix/lib/node_modules"
+        find "$npm_prefix/lib/node_modules" -mindepth 1 -maxdepth 1 -not -name "npm" -exec rm -rf {} \;
+    fi
+fi
+
+# Remove Docker images and containers if Docker is installed
+if command -v docker &> /dev/null; then
+    log_action "Backing up and removing Docker containers and images..."
+    docker ps -a > "$backup_dir/docker_containers.txt"
+    docker images > "$backup_dir/docker_images.txt"
+    
+    # Stop and remove all containers
+    docker stop $(docker ps -a -q) 2>/dev/null || true
+    docker rm $(docker ps -a -q) 2>/dev/null || true
+    
+    # Remove all images
+    docker rmi $(docker images -q) 2>/dev/null || true
+    
+    # Prune volumes and networks
+    docker volume prune -f 2>/dev/null || true
+    docker network prune -f 2>/dev/null || true
+    docker system prune -a -f 2>/dev/null || true
+fi
 
 # Check common locations for manually installed software
 common_install_dirs=(
@@ -330,6 +459,21 @@ for dir in "${common_install_dirs[@]}"; do
                 # For other directories, remove non-essential files
                 # Save any system startup scripts
                 find "$dir" -type f -not -name "*.service" -not -name "*.timer" > "$backup_dir/removed_from_$(basename $dir).txt"
+                
+                # Get list of common development tools binaries to remove
+                dev_binaries=("git" "node" "npm" "yarn" "python" "pip" "ruby" "gem" "php" "composer" 
+                              "gcc" "g++" "make" "cmake" "go" "cargo" "rustc" "mvn" "gradle" "docker" 
+                              "kubectl" "terraform" "ansible" "vagrant")
+                
+                # Remove development tool binaries
+                for binary in "${dev_binaries[@]}"; do
+                    if [ -f "$dir/$binary" ]; then
+                        log_action "Removing development binary: $dir/$binary"
+                        rm -f "$dir/$binary"
+                    fi
+                done
+                
+                # Remove remaining non-essential files
                 find "$dir" -type f -not -name "*.service" -not -name "*.timer" -delete
             fi
         fi
@@ -356,7 +500,7 @@ if command -v snap &> /dev/null; then
         "base"
         "gtk-common-themes"
         "snap-store"  # Added snap-store to keep it preserved
-        "firefox"     # Keep Firefox snap
+        "firefox"     # Keep Firefox snap as requested
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
         # Add any other essential snaps here
@@ -397,7 +541,7 @@ echo "System reset process complete!"
 echo "============================="
 echo ""
 echo "A backup of important system files was created at: $backup_dir"
-echo "Snap Store was preserved as requested."
+echo "Development tools were removed"
 echo "Please reboot your system now for all changes to take effect."
 echo ""
 

@@ -1,5 +1,54 @@
 #!/bin/bash
 
+# Define colors and styles for terminal output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+UNDERLINE='\033[4m'
+RESET='\033[0m'
+
+# Function to print watermark banner
+print_watermark() {
+    echo -e "${CYAN}${BOLD}==============================================${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀    ⢀⣴⠿⠻⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⢀⣴⠟⠁⠀⠀⢿⡄⠀⠀⢰⡾⠿⢷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⣠⡾⠋⠀⠀⠀⠀⢸⡇⠀⠀⢸⡇⠀⠀⠈⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⣴⡟⠁⠀⠀⠀⠀⠀⢸⡇⠀⠀⢸⡇⠀⠀⠀⠀⠙⢿⡄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⢰⡟⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⢸⣧⠀⠀⠀⠀⠀⠈⣿⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠘⣿⡄⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⣿⠀⢀⠀⠀⠀⠀⣿⠓⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠈⣿⡀⠀⠀⠀⠀⠀⠀⣿⠃⠀⠀⠀⣾⣷⠿⠿⢷⣤⣼⡏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠸⣧⠀⠀⠀⢠⣶⣶⣿⣦⣤⣴⡾⠋⠀⠀⠀⠀⠈⠙⠻⢶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⢻⣆⠀⠀⣿⠏⢿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣧⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⢻⣇⣸⡟⠀⣼⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⣀⣀⣠⣤⣿⡿⠃⠀⣿⠃⠀⠀⠀⠀⠀⠀⣠⡶⠾⠟⠛⠛⠛⠛⠛⠛⠻⠿⠿⢶⣦⣄⡀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⢿⡏⠉⠁⠀⠀⠀⠀⢻⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣧${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠈⣿⡀⠀⠀⠀⠀⠀⢨⣿⣀⣀⣀⣀⣀⣀⡤⠤⠤⠤⡀⠀⠀⠀⡀⠀⠀⢀⣀⣀⣀⣀⣸⣿${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠘⣿⡀⠀⣀⣤⣶⠿⠛⣩⣍⣄⡀⠀⠀⠀⡀⠀⠀⠀⢀⣤⡾⢿⣴⡾⠛⠉⠉⡉⠉⠉⠉${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⢿⣧⡾⠟⠉⠀⠀⢰⠟⠀⠈⠉⠛⠶⢾⡿⠀⣿⠶⠛⢁⣰⣼⡟⠷⠶⠶⠾⣿⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⣠⣄⣀⣀⣼⠏⠀⠀⠀⠀⣠⣯⠴⠾⢻⡆⠀⠀⢸⠁⠀⢸⡇⠀⢸⡇⠙⡇⠀⠀⠀⢀⣿⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⡟⠈⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⠀⢀⡾⠀⠀⠸⣇⢀⣼⠃⠀⠀⠀⢠⣶⡟⠁⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠻⣆⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠛⠁⠀⠀⠀⠈⠉⠁⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⢀⣻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠙⠛⣿⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⢸⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⠀⠀⠀⣀⣤⣤⣴⠞⠀⠀⠀⣿⡄⠀⠀⠀⣠⡿⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⢸⣿⣧⣴⠶⠿⢶⡄⠀⠀⠀⠀⢀⣴⠟⠙⠛⠛⠛⠉⠁⠈⠙⢻⣦⠀⢠⡿⠛⠳⠶⠶⠛⠋⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠉⠀⠀⠀⢸⡇⠀⠀⢀⣴⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠶⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⠀⠿⠷⠶⠞⠋⠁⠀⠀⠀${RESET}"
+    echo -e "${CYAN}${BOLD}==============================================${RESET}"
+    echo -e "${CYAN}${BOLD}              Made by Projeckt Aqua          ${RESET}"
+    echo -e "${CYAN}${BOLD}==============================================${RESET}"
+    echo ""
+}
+
+
+
+
+# Print watermark at the start
+print_watermark
+
 # Ubuntu/Linux System Reset Script
 # This script resets a Linux system to a cleaner state while strictly preserving essential components.
 # It removes non-essential applications, clears user data, and resets configurations.
@@ -8,37 +57,37 @@
 
 # Check if running as root
 if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root (use sudo)."
+    echo -e "${RED}This script must be run as root (use sudo).${RESET}"
     exit 1
 fi
 
 # Display warning and confirmation
-echo "This script was created By Projeckt Aqua to help users reset their Linux systems."
+echo -e "${BOLD}This script help users reset their Linux systems.${RESET}"
 echo ""
-echo "==================================================="
-echo "WARNING: This script will reset your system to a near-default state."
-echo "All user data, installed applications, and configurations will be removed."
-echo "The OS itself will remain installed."
+echo -e "${YELLOW}===================================================${RESET}"
+echo -e "${RED}${BOLD}WARNING: This script will reset your system to a near-default state.${RESET}"
+echo -e "${YELLOW}All user data, installed applications, and configurations will be removed.${RESET}"
+echo -e "${YELLOW}The OS itself will remain installed.${RESET}"
 echo ""
-echo "This operation CANNOT be undone!"
-echo "==================================================="
+echo -e "${RED}${BOLD}This operation CANNOT be undone!${RESET}"
+echo -e "${YELLOW}===================================================${RESET}"
 read -p "Are you absolutely sure you want to continue? (yes/no): " confirmation
 
 
 if [ "$confirmation" != "yes" ]; then
-    echo "Operation cancelled."
+    echo -e "${RED}Operation cancelled.${RESET}"
     exit 0
 fi
 
 read -p "Enter 'CONFIRM RESET' in all caps to proceed: " final_confirmation
 
 if [ "$final_confirmation" != "CONFIRM RESET" ]; then
-    echo "Operation cancelled."
+    echo -e "${RED}Operation cancelled.${RESET}"
     exit 0
 fi
 
-echo "Starting system reset process..."
-echo "This may take some time. Please do not interrupt the process."
+echo -e "${GREEN}Starting system reset process...${RESET}"
+echo -e "${CYAN}This may take some time. Please do not interrupt the process.${RESET}"
 
 # Function to log actions
 log_action() {
@@ -550,3 +599,6 @@ if [ "$reboot_choice" = "yes" ]; then
     log_action "Rebooting system..."
     reboot
 fi
+
+# Print watermark at the end
+print_watermark

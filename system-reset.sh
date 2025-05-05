@@ -95,9 +95,9 @@ if command -v apt-get &> /dev/null; then
     fi
     
     log_action "Removing games, extra media players, and non-essential applications..."
-    apt-get -y purge libreoffice* thunderbird* gimp* transmission* simple-scan* rhythmbox* \
+    apt-get -y purge libreoffice* gimp* transmission* simple-scan* \
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
-                     cheese* shotwell* remmina* totem* brasero* sound-juicer* \
+                        shotwell* remmina* totem* brasero* sound-juicer* \
                      deja-dup* timeshift* synaptic* 
     
     log_action "Removing user-installed packages..."

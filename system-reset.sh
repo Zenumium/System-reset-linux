@@ -13,11 +13,15 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Display warning and confirmation
+echo "This script was created By Projeckt Aqua to help users reset their Linux systems."
+echo ""
+echo "==================================================="
 echo "WARNING: This script will reset your system to a near-default state."
 echo "All user data, installed applications, and configurations will be removed."
 echo "The OS itself will remain installed."
 echo ""
 echo "This operation CANNOT be undone!"
+echo "==================================================="
 read -p "Are you absolutely sure you want to continue? (yes/no): " confirmation
 
 if [ "$confirmation" != "yes" ]; then
@@ -89,7 +93,7 @@ if command -v apt-get &> /dev/null; then
         # Make sure the desktop environment is marked as manually installed
         apt-mark manual $desktop_env
         # Also preserve critical X11 and display manager packages
-        apt-mark manual xorg lightdm gdm3 gnome-shell firefox
+        apt-mark manual xorg lightdm gdm3 gnome-shell firefox ubuntu-session gnome-session
     fi
     
     # Remove only certain categories of packages
@@ -99,6 +103,29 @@ if command -v apt-get &> /dev/null; then
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
                      cheese* shotwell* remmina* totem* brasero* sound-juicer* \
                      deja-dup* timeshift* synaptic* 
+    
+    # Remove user-installed packages (those not in the original installation)
+    log_action "Removing user-installed packages..."
+    if [ -f /var/log/installer/initial-status.gz ]; then
+        # Create a list of original packages
+        zcat /var/log/installer/initial-status.gz | grep "^Package: " | cut -d" " -f2 > "$backup_dir/original_packages.txt"
+        
+        # Get current packages
+        dpkg --get-selections | grep -v deinstall | cut -f1 > "$backup_dir/current_packages.txt"
+        
+        # Find packages that were installed after the initial system setup
+        # but exclude critical packages
+        grep -v -f "$backup_dir/original_packages.txt" "$backup_dir/current_packages.txt" | \
+        grep -v -E "($desktop_env|xorg|gdm3|lightdm|gnome-shell|ubuntu-session|gnome-session|network-manager|ubuntu-minimal|ubuntu-standard)" > "$backup_dir/to_remove.txt"
+        
+        # Remove these packages if the list is not empty
+        if [ -s "$backup_dir/to_remove.txt" ]; then
+            log_action "Removing $(wc -l < "$backup_dir/to_remove.txt") user-installed packages"
+            xargs apt-get -y purge < "$backup_dir/to_remove.txt" || true
+        fi
+    else
+        log_action "Cannot determine original package set; skipping removal of user-installed packages"
+    fi
     
     # Remove orphaned packages
     apt-get -y autoremove --purge
@@ -223,6 +250,71 @@ done
 log_action "Clearing system caches..."
 sync
 echo 3 > /proc/sys/vm/drop_caches
+
+# 5. Clean up manually installed software
+log_action "Cleaning up manually installed software..."
+
+# Check common locations for manually installed software
+common_install_dirs=(
+    "/usr/local/bin"
+    "/usr/local/sbin"
+    "/usr/local/games"
+    "/usr/local/lib"
+    "/opt"
+    "/root/.local/bin"
+)
+
+# Backup and clean manually installed locations
+for dir in "${common_install_dirs[@]}"; do
+    if [ -d "$dir" ]; then
+        log_action "Processing directory: $dir"
+        
+        # Create backup
+        if [ "$(ls -A $dir 2>/dev/null)" ]; then
+            mkdir -p "$backup_dir$dir"
+            cp -a "$dir"/* "$backup_dir$dir/" 2>/dev/null || true
+            
+            # For /opt and /usr/local/lib, be more selective
+            if [[ "$dir" == "/opt" || "$dir" == "/usr/local/lib" ]]; then
+                # List directories for reference but don't delete essential ones
+                find "$dir" -mindepth 1 -maxdepth 1 -type d | sort > "$backup_dir/manual_installs_$(basename $dir).txt"
+                log_action "Directories in $dir were backed up but preserved for system stability"
+            else
+                # For other directories, remove non-essential files
+                # Save any system startup scripts
+                find "$dir" -type f -not -name "*.service" -not -name "*.timer" > "$backup_dir/removed_from_$(basename $dir).txt"
+                find "$dir" -type f -not -name "*.service" -not -name "*.timer" -delete
+            fi
+        fi
+    fi
+done
+
+# Clean up flatpak applications if flatpak is installed
+if command -v flatpak &> /dev/null; then
+    log_action "Backing up and removing Flatpak applications..."
+    flatpak list --app > "$backup_dir/flatpak_applications.txt"
+    flatpak uninstall --all -y || true
+fi
+
+# Clean up snap applications if snap is installed
+if command -v snap &> /dev/null; then
+    log_action "Backing up and removing non-essential Snap applications..."
+    snap list > "$backup_dir/snap_applications.txt"
+    
+    # Get list of snaps and exclude core snaps
+    for snap in $(snap list | grep -v -E '^(core|snapd|bare|base|gtk-common-themes)' | awk '{print $1}'); do
+        log_action "Removing snap: $snap"
+        snap remove --purge "$snap" || true
+    done
+fi
+
+# Remove AppImage files
+log_action "Looking for and removing AppImage files..."
+# Search in common locations for AppImage files
+find /home -name "*.AppImage" -type f > "$backup_dir/appimage_files.txt"
+if [ -s "$backup_dir/appimage_files.txt" ]; then
+    cat "$backup_dir/appimage_files.txt" | xargs rm -f
+fi
 
 # Optional: Reset GRUB to default (be careful with this)
 if command -v update-grub &> /dev/null; then

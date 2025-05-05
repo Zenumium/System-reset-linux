@@ -88,10 +88,10 @@ if command -v apt-get &> /dev/null; then
     if [ -n "$desktop_env" ]; then
         # Make sure the desktop environment is marked as manually installed
         apt-mark manual $desktop_env
-        # Also preserve critical X11, display manager, and essential applications
-        apt-mark manual xorg lightdm gdm3 gnome-shell firefox ubuntu-session gnome-session
-        # Preserve App Center (different names depending on distribution)
-        apt-mark manual gnome-software ubuntu-software software-center firefox
+        # Also preserve critical X11 and display manager packages
+        apt-mark manual xorg lightdm gdm3 gnome-shell firefox
+        # Explicitly preserve AppCenter packages
+        apt-mark manual gnome-software ubuntu-software software-center snapd
     fi
     
     # Remove only certain categories of packages
@@ -101,8 +101,7 @@ if command -v apt-get &> /dev/null; then
                      gnome-mahjongg gnome-mines gnome-sudoku aisleriot \
                      cheese* shotwell* remmina* totem* brasero* sound-juicer* \
                      deja-dup* timeshift* synaptic* 
-    
-    # Remove user-installed packages (those not in the original installation)
+     # Remove user-installed packages (those not in the original installation)
     log_action "Removing user-installed packages..."
     if [ -f /var/log/installer/initial-status.gz ]; then
         # Create a list of original packages
@@ -112,9 +111,9 @@ if command -v apt-get &> /dev/null; then
         dpkg --get-selections | grep -v deinstall | cut -f1 > "$backup_dir/current_packages.txt"
         
         # Find packages that were installed after the initial system setup
-        # but exclude critical packages
+        # but exclude critical packages and AppCenter packages
         grep -v -f "$backup_dir/original_packages.txt" "$backup_dir/current_packages.txt" | \
-        grep -v -E "($desktop_env|xorg|gdm3|lightdm|gnome-shell|ubuntu-session|gnome-session|network-manager|ubuntu-minimal|ubuntu-standard|firefox|gnome-software|ubuntu-software|software-center)" > "$backup_dir/to_remove.txt"
+        grep -v -E "($desktop_env|xorg|gdm3|lightdm|gnome-shell|ubuntu-session|gnome-session|network-manager|ubuntu-minimal|ubuntu-standard|firefox|gnome-software|ubuntu-software|software-center|snap|snapd|app-install-data|packagekit)" > "$backup_dir/to_remove.txt"
         
         # Remove these packages if the list is not empty
         if [ -s "$backup_dir/to_remove.txt" ]; then
@@ -125,7 +124,9 @@ if command -v apt-get &> /dev/null; then
         log_action "Cannot determine original package set; skipping removal of user-installed packages"
     fi
     
-    # Remove orphaned packages
+    # Remove orphaned packages while preserving AppCenter dependencies
+    # First, make sure AppCenter packages are marked as manually installed
+    apt-mark manual gnome-software ubuntu-software software-center app-install-data snapd packagekit
     apt-get -y autoremove --purge
     
     # Clean package cache
@@ -137,10 +138,13 @@ elif command -v dnf &> /dev/null; then
     # Save list of user-installed packages
     dnf repoquery --userinstalled > "$backup_dir/user_installed_packages.txt"
     
+    # Ensure software-center related packages are preserved
+    dnf -y mark install gnome-software
+    
     # Reset to a minimal installation
     # This keeps @core and @minimal groups
     dnf -y group install core minimal
-    dnf -y remove $(dnf repoquery --userinstalled | grep -v "$(dnf -y group info core minimal | grep -A 999 "Mandatory Packages:" | grep -B 999 "Optional Packages:" | grep -v "Mandatory Packages:" | grep -v "Optional Packages:" | tr '\n' ' ')")
+    dnf -y remove $(dnf repoquery --userinstalled | grep -v "$(dnf -y group info core minimal | grep -A 999 "Mandatory Packages:" | grep -B 999 "Optional Packages:" | grep -v "Mandatory Packages:" | grep -v "Optional Packages:" | tr '\n' ' ')" | grep -v "gnome-software")
     
     # Clean package cache
     dnf clean all
@@ -151,8 +155,11 @@ elif command -v pacman &> /dev/null; then
     pacman -Qqe > "$backup_dir/explicitly_installed_packages.txt"
     pacman -Qqn > "$backup_dir/native_packages.txt"
     
-    # Remove all but base packages
-    pacman -Rns $(pacman -Qqe | grep -v "$(pacman -Qgq base base-devel | tr '\n' '|' | sed 's/|$//')")
+    # Preserve pamac/software center packages for Arch
+    pacman -D --asexplicit pamac gnome-software 2>/dev/null || true
+    
+    # Remove all but base packages and software center
+    pacman -Rns $(pacman -Qqe | grep -v "$(pacman -Qgq base base-devel | tr '\n' '|' | sed 's/|$//')" | grep -v "pamac" | grep -v "gnome-software")
     
     # Clean package cache
     pacman -Scc --noconfirm
@@ -299,8 +306,8 @@ if command -v snap &> /dev/null; then
     log_action "Backing up and removing non-essential Snap applications..."
     snap list > "$backup_dir/snap_applications.txt"
     
-    # Get list of snaps and exclude core snaps
-    for snap in $(snap list | grep -v -E '^(core|snapd|bare|base|gtk-common-themes)' | awk '{print $1}'); do
+    # Get list of snaps and exclude core snaps and the software-center
+    for snap in $(snap list | grep -v -E '^(core|snapd|bare|base|gtk-common-themes|gnome-.*-app|ubuntu-software|snap-store)' | awk '{print $1}'); do
         log_action "Removing snap: $snap"
         snap remove --purge "$snap" || true
     done

@@ -152,7 +152,6 @@ if command -v apt-get &> /dev/null; then
         "linux-image-*" "linux-modules-*" "linux-firmware" # Kernel related
         "base-files" "base-passwd" "bash" "coreutils" # Fundamental utilities
         "snap-store" # Keep Snap Store
-        "firefox" "firefox-*" # Keep Firefox 
         # Add any other packages that MUST be preserved here, e.g., "My App"
     )
     essential_pattern=$(IFS='|'; echo "${essential_packages[*]}")
@@ -354,31 +353,40 @@ echo 3 > /proc/sys/vm/drop_caches
 # 5. Clean up manually installed software and development tools
 log_action "Cleaning up manually installed software and development tools..."
 
-# Enhanced removal of development tools - specifically target git, nodejs, and flatpak
+# Explicitly remove Firefox (apt and snap)
 if command -v apt-get &> /dev/null; then
-    log_action "Explicitly removing Git, Node.js, and Flatpak..."
-    apt-get -y purge git git-* nodejs node-* npm flatpak || true
+    log_action "Explicitly removing Firefox..."
+    apt-get -y purge firefox firefox-* || true
+fi
+
+if command -v snap &> /dev/null; then
+    log_action "Explicitly removing Firefox snap..."
+    snap remove --purge firefox || true
+fi
+
+# Enhanced removal of development tools - specifically target nodejs and flatpak (keep git and golang)
+if command -v apt-get &> /dev/null; then
+    log_action "Explicitly removing Node.js and Flatpak..."
+    apt-get -y purge nodejs node-* npm flatpak || true
 fi
 
 if command -v dnf &> /dev/null; then
-    log_action "Explicitly removing Git, Node.js, and Flatpak via dnf..."
-    dnf -y remove git nodejs npm flatpak || true
+    log_action "Explicitly removing Node.js and Flatpak via dnf..."
+    dnf -y remove nodejs npm flatpak || true
 fi
 
 if command -v pacman &> /dev/null; then
-    log_action "Explicitly removing Git, Node.js, and Flatpak via pacman..."
-    pacman -Rns --noconfirm git nodejs npm flatpak || true
+    log_action "Explicitly removing Node.js and Flatpak via pacman..."
+    pacman -Rns --noconfirm nodejs npm flatpak || true
 fi
 
 # Remove common development tools (unless they're in the essential packages list)
 dev_packages_to_remove=(
-    "git" "git-*"
     "nodejs" "node-*" "npm"
     "python*-dev" "python*-pip" "python*-venv" "python*-setuptools"
     "ruby" "ruby-dev" "rubygems" "gem"
     "php*" "php*-cli" "php*-common" "composer"
     "gcc" "g++" "make" "build-essential" "cmake" "autoconf" "automake"
-    "golang" "golang-go"
     "rust*" "cargo"
     "openjdk*" "maven" "gradle"
     "docker*" "docker.io" "podman" "containerd"
@@ -414,11 +422,11 @@ if command -v apt-get &> /dev/null; then
     fi
 elif command -v dnf &> /dev/null; then
     log_action "Removing development tools via dnf..."
-    dnf -y remove git nodejs npm python*-devel python*-pip ruby rubygems golang rust cargo flatpak || true
+    dnf -y remove nodejs npm python*-devel python*-pip ruby rubygems rust cargo flatpak || true
     dnf -y autoremove
 elif command -v pacman &> /dev/null; then
     log_action "Removing development tools via pacman..."
-    pacman -Rns --noconfirm git nodejs npm python python-pip ruby go rust flatpak || true
+    pacman -Rns --noconfirm nodejs npm python python-pip ruby rust flatpak || true
 fi
 
 # Remove version managers and language-specific tools
@@ -592,7 +600,6 @@ if command -v snap &> /dev/null; then
         "base"
         "gtk-common-themes"
         "snap-store"  # Added snap-store to keep it preserved
-        "firefox"     # Keep Firefox snap
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
         # Add any other essential snaps here

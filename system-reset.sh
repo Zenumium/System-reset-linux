@@ -13,45 +13,6 @@ RESET='\033[0m'
 # Function to print watermark banner
 print_watermark() {
     echo -e "${CYAN}${BOLD}==============================================${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀    ⢀⣴⠿⠻⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⢀⣴⠟⠁⠀⠀⢿⡄⠀⠀⢰⡾⠿⢷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⣠⡾⠋⠀⠀⠀⠀⢸⡇⠀⠀⢸⡇⠀⠀⠈⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⣴⡟⠁⠀⠀⠀⠀⠀⢸⡇⠀⠀⢸⡇⠀⠀⠀⠀⠙⢿⡄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⢰⡟⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⢸⣧⠀⠀⠀⠀⠀⠈⣿⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠘⣿⡄⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⣿⠀⢀⠀⠀⠀⠀⣿⠓⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠈⣿⡀⠀⠀⠀⠀⠀⠀⣿⠃⠀⠀⠀⣾⣷⠿⠿⢷⣤⣼⡏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠸⣧⠀⠀⠀⢠⣶⣶⣿⣦⣤⣴⡾⠋⠀⠀⠀⠀⠈⠙⠻⢶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⢻⣆⠀⠀⣿⠏⢿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣧⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⢻⣇⣸⡟⠀⣼⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⣀⣀⣠⣤⣿⡿⠃⠀⣿⠃⠀⠀⠀⠀⠀⠀⣠⡶⠾⠟⠛⠛⠛⠛⠛⠛⠻⠿⠿⢶⣦⣄⡀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⢿⡏⠉⠁⠀⠀⠀⠀⢻⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣧${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠈⣿⡀⠀⠀⠀⠀⠀⢨⣿⣀⣀⣀⣀⣀⣀⡤⠤⠤⠤⡀⠀⠀⠀⡀⠀⠀⢀⣀⣀⣀⣀⣸⣿${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠘⣿⡀⠀⣀⣤⣶⠿⠛⣩⣍⣄⡀⠀⠀⠀⡀⠀⠀⠀⢀⣤⡾⢿⣴⡾⠛⠉⠉⡉⠉⠉⠉${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⢿⣧⡾⠟⠉⠀⠀⢰⠟⠀⠈⠉⠛⠶⢾⡿⠀⣿⠶⠛⢁⣰⣼⡟⠷⠶⠶⠾⣿⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⣠⣄⣀⣀⣼⠏⠀⠀⠀⠀⣠⣯⠴⠾⢻⡆⠀⠀⢸⠁⠀⢸⡇⠀⢸⡇⠙⡇⠀⠀⠀⢀⣿⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⡟⠈⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⠀⢀⡾⠀⠀⠸⣇⢀⣼⠃⠀⠀⠀⢠⣶⡟⠁⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠻⣆⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠛⠁⠀⠀⠀⠈⠉⠁⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⢀⣻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠙⠛⣿⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⢸⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⠀⠀⠀⣀⣤⣤⣴⠞⠀⠀⠀⣿⡄⠀⠀⠀⣠⡿⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⢸⣿⣧⣴⠶⠿⢶⡄⠀⠀⠀⠀⢀⣴⠟⠙⠛⠛⠛⠉⠁⠈⠙⢻⣦⠀⢠⡿⠛⠳⠶⠶⠛⠋⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠉⠀⠀⠀⢸⡇⠀⠀⢀⣴⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠶⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
-    echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⠀⠿⠷⠶⠞⠋⠁⠀⠀⠀${RESET}"
-   #!/bin/bash
-
-# Define colors and styles for terminal output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-UNDERLINE='\033[4m'
-RESET='\033[0m'
-
-# Function to print watermark banner
-print_watermark() {
-    echo -e "${CYAN}${BOLD}==============================================${RESET}"
     echo -e "${CYAN}${BOLD}              Made by Projeckt Aqua          ${RESET}"
     echo -e "${CYAN}${BOLD}==============================================${RESET}"
     echo ""

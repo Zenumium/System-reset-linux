@@ -12,7 +12,7 @@ RESET='\033[0m'
 
 # Function to print watermark banner
 print_watermark() {
-      echo -e "${CYAN}${BOLD}==============================================${RESET}"
+    echo -e "${CYAN}${BOLD}==============================================${RESET}"
     echo -e "${CYAN}${BOLD}⠀⠀⠀⠀    ⢀⣴⠿⠻⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
     echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⢀⣴⠟⠁⠀⠀⢿⡄⠀⠀⢰⡾⠿⢷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
     echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⣠⡾⠋⠀⠀⠀⠀⢸⡇⠀⠀⢸⡇⠀⠀⠈⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"

@@ -652,3 +652,6 @@ if [ "$reboot_choice" = "yes" ]; then
     log_action "Rebooting system..."
     reboot
 fi
+
+# Print watermark at the end
+print_watermark

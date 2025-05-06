@@ -600,10 +600,9 @@ if command -v snap &> /dev/null; then
         "base"
         "gtk-common-themes"
         "snap-store"  # Added snap-store to keep it preserved
-        "code" "discord"
+        "code" "discord" "git" "golang-go" "golang"
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
-        "code" "discord" "git" "golang-go" "golang" # Essential development tools
         # Add any other essential snaps here
     )
     essential_snap_pattern=$(IFS='|'; echo "^(${essential_snaps[*]})$")

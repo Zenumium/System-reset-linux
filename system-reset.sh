@@ -443,7 +443,6 @@ version_managers=(
     "/home/*/.volta"
     "/home/*/.gvm"
     "/home/*/.jenv"
-    "/home/*/.goenv"
     "/home/*/.nodenv"
 )
 
@@ -517,10 +516,10 @@ common_install_dirs=(
     "/root/.local/bin"
 )
 
-# Specifically look for and remove git, node, npm, and flatpak binaries in common paths
-log_action "Looking for manually installed git, node, npm, and flatpak binaries..."
+# Specifically look for and remove node, npm, and flatpak binaries in common paths
+log_action "Looking for manually installed node, npm, and flatpak binaries..."
 for dir in "/usr/local/bin" "/usr/local/sbin" "/usr/bin" "/usr/sbin" "/bin" "/sbin"; do
-    for binary in "git" "node" "npm" "flatpak"; do
+    for binary in "node" "npm" "flatpak"; do
         if [ -f "$dir/$binary" ]; then
             log_action "Found $binary in $dir, removing..."
             rm -f "$dir/$binary"

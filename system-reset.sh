@@ -264,6 +264,13 @@ for user in $(awk -F: '$3 >= 1000 && $1 != "root" && $3 != 65534 {print $1}' /et
     log_action "Deleting user: $user"
     userdel -r "$user" && log_action "Deleted user $user successfully." || log_action "Failed to delete user $user."
 
+    # Skip root
+    if [ "$user" != "root" ]; then
+        user_home=$(eval echo ~$user)
+
+        log_action "Resetting user: $user (home: $user_home)"
+
+
         # Backup .bashrc and other important files
         mkdir -p "$backup_dir/user_$user"
         [ -f $user_home/.bashrc ] && cp $user_home/.bashrc "$backup_dir/user_$user/"
@@ -280,6 +287,7 @@ for user in $(awk -F: '$3 >= 1000 && $1 != "root" && $3 != 65534 {print $1}' /et
 
         # Fix ownership
         chown -R $user:$user $user_home
+    fi
 done
 
 # 3. Reset system configurations

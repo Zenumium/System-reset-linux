@@ -549,8 +549,8 @@ for dir in "${common_install_dirs[@]}"; do
                 find "$dir" -type f -not -name "*.service" -not -name "*.timer" > "$backup_dir/removed_from_$(basename $dir).txt"
                 
                 # Get list of common development tools binaries to remove
-                dev_binaries=("git" "node" "npm" "yarn" "python" "pip" "ruby" "gem" "php" "composer" 
-                              "gcc" "g++" "make" "cmake" "go" "cargo" "rustc" "mvn" "gradle" "docker" 
+                dev_binaries=("node" "npm" "yarn" "python" "pip" "ruby" "gem" "php" "composer" 
+                              "gcc" "g++" "make" "cmake" "cargo" "rustc" "mvn" "gradle" "docker" 
                               "kubectl" "terraform" "ansible" "vagrant" "flatpak")
                 
                 # Remove development tool binaries
@@ -604,6 +604,7 @@ if command -v snap &> /dev/null; then
         "code" "discord"
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
+        "code" "discord" "git" "golang-go" "golang" # Essential development tools
         # Add any other essential snaps here
     )
     essential_snap_pattern=$(IFS='|'; echo "^(${essential_snaps[*]})$")

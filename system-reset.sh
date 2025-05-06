@@ -69,20 +69,6 @@ echo -e "${YELLOW}The OS itself will remain installed.${RESET}"
 echo ""
 echo -e "${RED}${BOLD}This operation CANNOT be undone!${RESET}"
 echo -e "${YELLOW}===================================================${RESET}"
-read -p "Are you absolutely sure you want to continue? (yes/no): " confirmation
-
-
-if [ "$confirmation" != "yes" ]; then
-    echo -e "${RED}Operation cancelled.${RESET}"
-    exit 0
-fi
-
-read -p "Enter 'CONFIRM RESET' in all caps to proceed: " final_confirmation
-
-if [ "$final_confirmation" != "CONFIRM RESET" ]; then
-    echo -e "${RED}Operation cancelled.${RESET}"
-    exit 0
-fi
 
 echo -e "${GREEN}Starting system reset process...${RESET}"
 echo -e "${CYAN}This may take some time. Please do not interrupt the process.${RESET}"

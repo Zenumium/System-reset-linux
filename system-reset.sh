@@ -256,34 +256,13 @@ elif command -v pacman &> /dev/null; then
     pacman -Scc --noconfirm
 fi
 
-# 2. Reset user accounts (keep the primary user but reset their settings)
-log_action "Resetting user accounts..."
+# 2. Delete all non-root users
+log_action "Deleting all non-root users..."
 
-# Get all non-system users
-for user in $(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/passwd); do
-    # Skip root
-    if [ "$user" != "root" ]; then
-        user_home=$(eval echo ~$user)
-
-        log_action "Resetting user: $user (home: $user_home)"
-
-        # Backup .bashrc and other important files
-        mkdir -p "$backup_dir/user_$user"
-        [ -f $user_home/.bashrc ] && cp $user_home/.bashrc "$backup_dir/user_$user/"
-        [ -f $user_home/.profile ] && cp $user_home/.profile "$backup_dir/user_$user/"
-        [ -f $user_home/.ssh/authorized_keys ] && mkdir -p "$backup_dir/user_$user/.ssh" && cp $user_home/.ssh/authorized_keys "$backup_dir/user_$user/.ssh/"
-
-        # Remove user data except .ssh authorized keys
-        find $user_home -mindepth 1 -not -path "$user_home/.ssh" -not -path "$user_home/.ssh/authorized_keys" -delete || true
-        mkdir -p $user_home/.ssh
-        chmod 700 $user_home/.ssh
-
-        # Copy default config files
-        cp -r /etc/skel/. $user_home/
-
-        # Fix ownership
-        chown -R $user:$user $user_home
-    fi
+# Get all non-root users with UID >= 1000 (non-system users)
+for user in $(awk -F: '$3 >= 1000 && $1 != "root" && $3 != 65534 {print $1}' /etc/passwd); do
+    log_action "Deleting user: $user"
+    userdel -r "$user" && log_action "Deleted user $user successfully." || log_action "Failed to delete user $user."
 done
 
 # 3. Reset system configurations

@@ -263,6 +263,23 @@ log_action "Deleting all non-root users..."
 for user in $(awk -F: '$3 >= 1000 && $1 != "root" && $3 != 65534 {print $1}' /etc/passwd); do
     log_action "Deleting user: $user"
     userdel -r "$user" && log_action "Deleted user $user successfully." || log_action "Failed to delete user $user."
+
+        # Backup .bashrc and other important files
+        mkdir -p "$backup_dir/user_$user"
+        [ -f $user_home/.bashrc ] && cp $user_home/.bashrc "$backup_dir/user_$user/"
+        [ -f $user_home/.profile ] && cp $user_home/.profile "$backup_dir/user_$user/"
+        [ -f $user_home/.ssh/authorized_keys ] && mkdir -p "$backup_dir/user_$user/.ssh" && cp $user_home/.ssh/authorized_keys "$backup_dir/user_$user/.ssh/"
+
+        # Remove user data except .ssh authorized keys
+        find $user_home -mindepth 1 -not -path "$user_home/.ssh" -not -path "$user_home/.ssh/authorized_keys" -delete || true
+        mkdir -p $user_home/.ssh
+        chmod 700 $user_home/.ssh
+
+        # Copy default config files
+        cp -r /etc/skel/. $user_home/
+
+        # Fix ownership
+        chown -R $user:$user $user_home
 done
 
 # 3. Reset system configurations

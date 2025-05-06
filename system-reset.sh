@@ -256,35 +256,75 @@ elif command -v pacman &> /dev/null; then
     pacman -Scc --noconfirm
 fi
 
-# 2. Reset user accounts (keep the primary user but reset their settings)
-log_action "Resetting user accounts..."
+# 2. Delete user accounts (keep only root)
+log_action "Deleting non-root user accounts..."
 
 # Get all non-system users
 for user in $(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/passwd); do
     # Skip root
     if [ "$user" != "root" ]; then
         user_home=$(eval echo ~$user)
-
-        log_action "Resetting user: $user (home: $user_home)"
-
-        # Backup .bashrc and other important files
+        
+        log_action "Processing user for deletion: $user (home: $user_home)"
+        
+        # Backup important files before deletion
         mkdir -p "$backup_dir/user_$user"
         [ -f $user_home/.bashrc ] && cp $user_home/.bashrc "$backup_dir/user_$user/"
         [ -f $user_home/.profile ] && cp $user_home/.profile "$backup_dir/user_$user/"
         [ -f $user_home/.ssh/authorized_keys ] && mkdir -p "$backup_dir/user_$user/.ssh" && cp $user_home/.ssh/authorized_keys "$backup_dir/user_$user/.ssh/"
-
-        # Remove user data except .ssh authorized keys
-        find $user_home -mindepth 1 -not -path "$user_home/.ssh" -not -path "$user_home/.ssh/authorized_keys" -delete || true
-        mkdir -p $user_home/.ssh
-        chmod 700 $user_home/.ssh
-
-        # Copy default config files
-        cp -r /etc/skel/. $user_home/
-
-        # Fix ownership
-        chown -R $user:$user $user_home
+        
+        # Check for any running processes by this user and kill them
+        log_action "Checking for running processes by user $user..."
+        user_processes=$(ps -u "$user" -o pid= | tr -d ' ')
+        if [ -n "$user_processes" ]; then
+            log_action "Terminating processes for user $user..."
+            kill -9 $user_processes 2>/dev/null || true
+        fi
+        
+        # Delete the user and their home directory
+        log_action "Deleting user: $user"
+        userdel -r "$user" 2>/dev/null
+        
+        # In case userdel failed to remove the home directory
+        if [ -d "$user_home" ]; then
+            log_action "Manually removing home directory: $user_home"
+            rm -rf "$user_home"
+        fi
+        
+        # Remove any crontabs for this user
+        crontab -r -u "$user" 2>/dev/null || true
+        
+        log_action "User $user has been deleted."
     fi
 done
+
+# Remove any traces of deleted users from groups
+log_action "Cleaning up group memberships..."
+for group in $(cut -d: -f1 /etc/group); do
+    # Get current members of the group
+    members=$(grep "^$group:" /etc/group | cut -d: -f4)
+    if [ -n "$members" ]; then
+        # Check each member to see if they still exist
+        new_members=""
+        IFS=',' read -ra MEMBER_ARRAY <<< "$members"
+        for member in "${MEMBER_ARRAY[@]}"; do
+            if id "$member" >/dev/null 2>&1 || [ "$member" = "root" ]; then
+                if [ -n "$new_members" ]; then
+                    new_members="$new_members,$member"
+                else
+                    new_members="$member"
+                fi
+            fi
+        done
+        
+        # Update group if members have changed
+        if [ "$members" != "$new_members" ]; then
+            sed -i "s/^$group:.*:.*:$members/$group:\\1:\\2:$new_members/" /etc/group
+        fi
+    fi
+done
+
+log_action "All non-root users have been removed from the system."
 
 # 3. Reset system configurations
 log_action "Resetting system configurations..."

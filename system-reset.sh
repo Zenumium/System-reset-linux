@@ -37,14 +37,25 @@ print_watermark() {
     echo -e "${CYAN}${BOLD}⠀⢸⣿⣧⣴⠶⠿⢶⡄⠀⠀⠀⠀⢀⣴⠟⠙⠛⠛⠛⠉⠁⠈⠙⢻⣦⠀⢠⡿⠛⠳⠶⠶⠛⠋⠀⠀⠀${RESET}"
     echo -e "${CYAN}${BOLD}⠀⠀⠀⠉⠀⠀⠀⢸⡇⠀⠀⢀⣴⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠶⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀${RESET}"
     echo -e "${CYAN}${BOLD}⠀⠀⠀⠀⠀⠀⠀⠿⠷⠶⠞⠋⠁⠀⠀⠀${RESET}"
+   #!/bin/bash
+
+# Define colors and styles for terminal output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+UNDERLINE='\033[4m'
+RESET='\033[0m'
+
+# Function to print watermark banner
+print_watermark() {
     echo -e "${CYAN}${BOLD}==============================================${RESET}"
     echo -e "${CYAN}${BOLD}              Made by Projeckt Aqua          ${RESET}"
     echo -e "${CYAN}${BOLD}==============================================${RESET}"
     echo ""
 }
-
-
-
 
 # Print watermark at the start
 print_watermark
@@ -353,6 +364,22 @@ echo 3 > /proc/sys/vm/drop_caches
 # 5. Clean up manually installed software and development tools
 log_action "Cleaning up manually installed software and development tools..."
 
+# Enhanced removal of development tools - specifically target git, nodejs, and flatpak
+if command -v apt-get &> /dev/null; then
+    log_action "Explicitly removing Git, Node.js, and Flatpak..."
+    apt-get -y purge git git-* nodejs node-* npm flatpak || true
+fi
+
+if command -v dnf &> /dev/null; then
+    log_action "Explicitly removing Git, Node.js, and Flatpak via dnf..."
+    dnf -y remove git nodejs npm flatpak || true
+fi
+
+if command -v pacman &> /dev/null; then
+    log_action "Explicitly removing Git, Node.js, and Flatpak via pacman..."
+    pacman -Rns --noconfirm git nodejs npm flatpak || true
+fi
+
 # Remove common development tools (unless they're in the essential packages list)
 dev_packages_to_remove=(
     "git" "git-*"
@@ -368,6 +395,7 @@ dev_packages_to_remove=(
     "yarn" "typescript" "babel"
     "mongodb*" "mysql*" "postgresql*" "redis*"
     "apache2*" "nginx*"
+    "flatpak"  # Add flatpak explicitly to the list
 )
 
 if command -v apt-get &> /dev/null; then
@@ -396,11 +424,11 @@ if command -v apt-get &> /dev/null; then
     fi
 elif command -v dnf &> /dev/null; then
     log_action "Removing development tools via dnf..."
-    dnf -y remove git nodejs npm python*-devel python*-pip ruby rubygems golang rust cargo || true
+    dnf -y remove git nodejs npm python*-devel python*-pip ruby rubygems golang rust cargo flatpak || true
     dnf -y autoremove
 elif command -v pacman &> /dev/null; then
     log_action "Removing development tools via pacman..."
-    pacman -Rns --noconfirm git nodejs npm python python-pip ruby go rust || true
+    pacman -Rns --noconfirm git nodejs npm python python-pip ruby go rust flatpak || true
 fi
 
 # Remove version managers and language-specific tools
@@ -490,6 +518,17 @@ common_install_dirs=(
     "/root/.local/bin"
 )
 
+# Specifically look for and remove git, node, npm, and flatpak binaries in common paths
+log_action "Looking for manually installed git, node, npm, and flatpak binaries..."
+for dir in "/usr/local/bin" "/usr/local/sbin" "/usr/bin" "/usr/sbin" "/bin" "/sbin"; do
+    for binary in "git" "node" "npm" "flatpak"; do
+        if [ -f "$dir/$binary" ]; then
+            log_action "Found $binary in $dir, removing..."
+            rm -f "$dir/$binary"
+        fi
+    done
+done
+
 # Backup and clean manually installed locations
 for dir in "${common_install_dirs[@]}"; do
     if [ -d "$dir" ]; then
@@ -513,7 +552,7 @@ for dir in "${common_install_dirs[@]}"; do
                 # Get list of common development tools binaries to remove
                 dev_binaries=("git" "node" "npm" "yarn" "python" "pip" "ruby" "gem" "php" "composer" 
                               "gcc" "g++" "make" "cmake" "go" "cargo" "rustc" "mvn" "gradle" "docker" 
-                              "kubectl" "terraform" "ansible" "vagrant")
+                              "kubectl" "terraform" "ansible" "vagrant" "flatpak")
                 
                 # Remove development tool binaries
                 for binary in "${dev_binaries[@]}"; do
@@ -530,11 +569,24 @@ for dir in "${common_install_dirs[@]}"; do
     fi
 done
 
-# Clean up flatpak applications if flatpak is installed
+# Clean up flatpak applications and the flatpak system itself
 if command -v flatpak &> /dev/null; then
-    log_action "Backing up and removing Flatpak applications..."
+    log_action "Backing up and removing Flatpak applications and Flatpak system..."
     flatpak list --app > "$backup_dir/flatpak_applications.txt"
     flatpak uninstall --all -y || true
+    
+    # After uninstalling all flatpak apps, try to remove the flatpak package itself
+    if command -v apt-get &> /dev/null; then
+        apt-get -y purge flatpak
+    elif command -v dnf &> /dev/null; then
+        dnf -y remove flatpak
+    elif command -v pacman &> /dev/null; then
+        pacman -Rns --noconfirm flatpak
+    fi
+    
+    # Remove flatpak data directories
+    rm -rf /var/lib/flatpak/* 2>/dev/null || true
+    rm -rf ~/.local/share/flatpak/* 2>/dev/null || true
 fi
 
 # Clean up snap applications if snap is installed (excluding core and essential snaps)
@@ -600,6 +652,3 @@ if [ "$reboot_choice" = "yes" ]; then
     log_action "Rebooting system..."
     reboot
 fi
-
-# Print watermark at the end
-print_watermark

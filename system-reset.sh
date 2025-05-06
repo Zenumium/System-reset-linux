@@ -152,6 +152,7 @@ if command -v apt-get &> /dev/null; then
         "linux-image-*" "linux-modules-*" "linux-firmware" # Kernel related
         "base-files" "base-passwd" "bash" "coreutils" # Fundamental utilities
         "snap-store" # Keep Snap Store
+        "code" "discord" "git" "golang-go" "golang" # Essential development tools
         # Add any other packages that MUST be preserved here, e.g., "My App"
     )
     essential_pattern=$(IFS='|'; echo "${essential_packages[*]}")
@@ -600,6 +601,7 @@ if command -v snap &> /dev/null; then
         "base"
         "gtk-common-themes"
         "snap-store"  # Added snap-store to keep it preserved
+        "code" "discord"
         "gnome-3-38-2004"  # Dependency for snap-store
         "gnome-42-2204"    # Newer dependency for snap-store
         # Add any other essential snaps here
